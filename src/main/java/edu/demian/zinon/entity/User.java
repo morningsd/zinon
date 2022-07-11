@@ -10,6 +10,8 @@ import javax.persistence.*;
 @Builder
 @Getter
 @Setter
+@EqualsAndHashCode
+@ToString
 public class User {
 
     @Id
@@ -23,9 +25,7 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    @ToString.Exclude
     private String password;
-
-    @Column(nullable = false, unique = true)
-    private String phoneNumber;
 
 }

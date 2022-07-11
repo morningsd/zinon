@@ -8,6 +8,8 @@ import {
 import './index.css';
 import App from './App';
 import Profile from "./components/Profile";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import About from "./components/About";
 import reportWebVitals from './reportWebVitals';
 
@@ -19,6 +21,8 @@ root.render(
     <BrowserRouter>
 	<Routes>  
 	    <Route path="/" element={<App />} />
+	    <Route path="login" element={<Login />} />
+	    <Route path="register" element={<Register />} />
 	    <Route path="profile" element={<Profile />} />
 	    <Route path="about" element={<About />} />
 	</Routes>

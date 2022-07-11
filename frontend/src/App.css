@@ -1,5 +1,15 @@
+html {
+    height: 100%;
+    width: 100%;
+}
+
 body {
-    background-color: #D9D0DE;
+    background-color: #D9D0DE!important;
+    height: 100%;
+}
+
+#root {
+    height: 100%;
 }
 
 header {
@@ -54,11 +64,23 @@ header {
     background-color: #AB4967;
     color: #0C1713;
     font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
 }
 
 .offcanvas-body .navbar-nav a:hover {
     background-color:#D9D0DE ;
 }
+
+.login-page {
+    height: 100%;
+}
+
+.login-form-wrapper {
+    align-items: center;
+    height: 100%;
+}
+
 
 footer {
     position: absolute;
