@@ -1,4 +1,4 @@
-package edu.demian.zinon.controller.dto;
+package edu.demian.zinon.dto.auth;
 
 import lombok.Data;
 

@@ -27,23 +27,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
-                .authorizeHttpRequests((authz) -> authz
-                        .antMatchers("/api/v*/auth/**").permitAll()
-                        .antMatchers("/api/v*/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
-                        .anyRequest()
-                        .authenticated()
-                )
-                .formLogin();
-//                .logout(logout -> logout
-//                        .logoutRequestMatcher(new AntPathRequestMatcher("/api/v1/auth/logout", "POST"))
-//                        .invalidateHttpSession(true)
-//                        .clearAuthentication(true)
-//                        .deleteCookies("JSESSIONID")
-//                        .logoutSuccessUrl("/api/v1/auth/login")
-//                )
-//                .httpBasic(withDefaults());
         return http.build();
     }
 
