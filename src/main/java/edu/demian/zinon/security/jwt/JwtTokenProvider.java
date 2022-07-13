@@ -29,9 +29,6 @@ public class JwtTokenProvider {
     @Value("${jwt.token.expiration.time.in.minutes}")
     private long jwtTokenExpirationTimeInMinutes;
 
-    @Value("${jwt.refresh.token.expiration.time.in.minutes}")
-    private long jwtRefreshTokenExpirationTimeInMinutes;
-
     private final UserDetailsService userDetailsService;
 
     public JwtTokenProvider(UserDetailsService userDetailsService) {
@@ -57,31 +54,6 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-
-
-//    public String createRefreshToken(String email, String role) {
-//        return createTokenWithExpiration(email, role, jwtRefreshTokenExpirationTimeInMinutes);
-//    }
-//
-//
-//    private String createTokenWithExpiration(String email, String role, long expirationTimeInMinutes) {
-//        Claims claims = Jwts.claims().setSubject(email);
-//        claims.put("role", role);
-//
-//        LocalDateTime ldt = LocalDateTime.now().plusMinutes(expirationTimeInMinutes);
-//        Instant instant = ldt.atZone(ZoneId.systemDefault()).toInstant();
-//        Date expiration = Date.from(instant);
-//
-//        byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
-//        Key key = Keys.hmacShaKeyFor(keyBytes);
-//
-//        return Jwts.builder()
-//                .setClaims(claims)
-//                .setIssuedAt(new Date())
-//                .setExpiration(expiration)
-//                .signWith(key, SignatureAlgorithm.HS256)
-//                .compact();
-//    }
 
 
     public boolean isValid(String token) {

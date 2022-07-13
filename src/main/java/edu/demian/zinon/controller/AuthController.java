@@ -1,14 +1,19 @@
 package edu.demian.zinon.controller;
 
 import edu.demian.zinon.dto.auth.request.LoginRequest;
+import edu.demian.zinon.dto.auth.request.TokenRefreshRequest;
 import edu.demian.zinon.dto.auth.response.JwtResponse;
 import edu.demian.zinon.dto.auth.request.RegisterRequest;
 import edu.demian.zinon.dto.auth.response.MessageResponse;
+import edu.demian.zinon.dto.auth.response.TokenRefreshResponse;
+import edu.demian.zinon.entity.RefreshToken;
 import edu.demian.zinon.entity.Role;
 import edu.demian.zinon.entity.Status;
 import edu.demian.zinon.entity.User;
 import edu.demian.zinon.security.CustomUserDetailsImpl;
+import edu.demian.zinon.security.exception.TokenRefreshException;
 import edu.demian.zinon.security.jwt.JwtTokenProvider;
+import edu.demian.zinon.service.RefreshTokenService;
 import edu.demian.zinon.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,12 +41,14 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, RefreshTokenService refreshTokenService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping(path = "/register")
@@ -77,11 +84,28 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.createToken(authentication);
-
         CustomUserDetailsImpl userDetails = (CustomUserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).toList();
-        return ResponseEntity.ok(new JwtResponse(userDetails.getId(), jwt, userDetails.getUsername(), userDetails.getEmail(), roles));
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        return ResponseEntity.ok(new JwtResponse(userDetails.getId(), jwt, refreshToken.getToken(), userDetails.getUsername(), userDetails.getEmail(), roles));
+    }
+
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = tokenProvider.generateTokenFromUsername(user.getEmail());
+                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+                })
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+                        "Refresh token is not in database!"));
+
     }
 
 
