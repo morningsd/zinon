@@ -1,6 +1,7 @@
 package edu.demian.zinon.controller;
 
 import edu.demian.zinon.dto.auth.request.LoginRequest;
+import edu.demian.zinon.dto.auth.request.LogoutRequest;
 import edu.demian.zinon.dto.auth.request.TokenRefreshRequest;
 import edu.demian.zinon.dto.auth.response.JwtResponse;
 import edu.demian.zinon.dto.auth.request.RegisterRequest;
@@ -82,13 +83,18 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.createToken(authentication);
+
         CustomUserDetailsImpl userDetails = (CustomUserDetailsImpl) authentication.getPrincipal();
+
+        String jwt = tokenProvider.createToken(userDetails);
+
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).toList();
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
         return ResponseEntity.ok(new JwtResponse(userDetails.getId(), jwt, refreshToken.getToken(), userDetails.getUsername(), userDetails.getEmail(), roles));
     }
 
@@ -96,11 +102,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
+
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String token = tokenProvider.generateTokenFromUsername(user.getEmail());
+                    String token = tokenProvider.createTokenFromUsername(user.getEmail());
                     return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
@@ -110,10 +117,13 @@ public class AuthController {
 
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(@Valid @RequestBody LogoutRequest logoutRequest, HttpServletRequest request, HttpServletResponse response) {
         SecurityContextLogoutHandler securityContextLogoutHandler = new SecurityContextLogoutHandler();
         securityContextLogoutHandler.logout(request, response, null);
-        return ResponseEntity.ok().build();
+
+        refreshTokenService.deleteByUserId(logoutRequest.getUserId());
+
+        return ResponseEntity.ok(new MessageResponse("Log out successful!"));
     }
 
 }

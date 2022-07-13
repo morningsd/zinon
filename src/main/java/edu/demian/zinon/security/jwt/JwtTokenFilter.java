@@ -1,6 +1,6 @@
 package edu.demian.zinon.security.jwt;
 
-import edu.demian.zinon.security.exception.JwtAuthenticationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Slf4j
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
@@ -35,14 +36,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
             if (jwt != null && tokenProvider.isValid(jwt)) {
                 UsernamePasswordAuthenticationToken authentication = tokenProvider.getAuthentication(jwt);
-                if (authentication != null) {
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (JwtAuthenticationException e) {
-            SecurityContextHolder.clearContext();
-            throw new JwtAuthenticationException("JWT token is expired or invalid");
+        } catch (Exception e) {
+            log.error("Cannot set user authentication: {}", e.getMessage());
         }
 
         chain.doFilter(request, response);

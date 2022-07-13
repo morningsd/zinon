@@ -1,21 +1,23 @@
 package edu.demian.zinon.advice;
 
-import lombok.Data;
+
+import lombok.Getter;
 
 import java.util.Date;
 
-@Data
+@Getter
 public class ErrorMessage {
 
-    private int status;
-    private Date date;
-    private String message;
-    private String description;
+    private final int statusCode;
+    private final Date timestamp;
+    private final String message;
+    private final String description;
 
-    public ErrorMessage(int status, Date date, String message, String description) {
-        this.status = status;
-        this.date = date;
+    public ErrorMessage(int statusCode, Date timestamp, String message, String description) {
+        this.statusCode = statusCode;
+        this.timestamp = timestamp;
         this.message = message;
         this.description = description;
     }
+
 }

@@ -36,6 +36,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
 
+    @Override
     public RefreshToken createRefreshToken(Long userId) {
         LocalDateTime ldt = LocalDateTime.now().plusMinutes(jwtRefreshTokenExpirationTimeInMinutes);
         Instant expiryDate = ldt.atZone(ZoneId.systemDefault()).toInstant();
@@ -49,6 +50,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
 
+    @Override
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
@@ -57,6 +59,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return token;
     }
 
+
+    @Override
     @Transactional
     public int deleteByUserId(Long userId) {
         return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());

@@ -35,10 +35,12 @@ public class JwtTokenProvider {
         this.userDetailsService = userDetailsService;
     }
 
+    public String createToken(CustomUserDetailsImpl userPrincipal) {
+        return createTokenFromUsername(userPrincipal.getEmail());
+    }
 
-    public String createToken(Authentication authentication) {
-        CustomUserDetailsImpl userPrincipal = (CustomUserDetailsImpl) authentication.getPrincipal();
-        Claims claims = Jwts.claims().setSubject(userPrincipal.getEmail());
+    public String createTokenFromUsername(String email) {
+        Claims claims = Jwts.claims().setSubject(email);
 
         LocalDateTime ldt = LocalDateTime.now().plusMinutes(jwtTokenExpirationTimeInMinutes);
         Instant instant = ldt.atZone(ZoneId.systemDefault()).toInstant();
@@ -54,6 +56,26 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+
+//    public String createToken(Authentication authentication) {
+//        CustomUserDetailsImpl userPrincipal = (CustomUserDetailsImpl) authentication.getPrincipal();
+//        Claims claims = Jwts.claims().setSubject(userPrincipal.getEmail());
+//
+//        LocalDateTime ldt = LocalDateTime.now().plusMinutes(jwtTokenExpirationTimeInMinutes);
+//        Instant instant = ldt.atZone(ZoneId.systemDefault()).toInstant();
+//        Date expiration = Date.from(instant);
+//
+//        byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
+//        Key key = Keys.hmacShaKeyFor(keyBytes);
+//
+//        return Jwts.builder()
+//                .setClaims(claims)
+//                .setIssuedAt(new Date())
+//                .setExpiration(expiration)
+//                .signWith(key, SignatureAlgorithm.HS256)
+//                .compact();
+//    }
 
 
     public boolean isValid(String token) {
